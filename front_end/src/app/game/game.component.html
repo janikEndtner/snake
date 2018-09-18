@@ -1,0 +1,33 @@
+<div>
+  <table>
+    <tr>
+      <td>Snake Lenght: </td>
+      <td>{{snake.getFields().length}}</td>
+    </tr>
+  </table>
+  <button [disabled]="gameRunning" (click)="initGame()">Start game</button>
+</div>
+<svg [attr.height]="pxHeight" [attr.width]="pxWidth">
+  <g>
+    <g *ngFor="let row of fields">
+      <rect *ngFor="let field of row"
+            [attr.width]="widthOfField"
+            [attr.height]="heightOfField"
+            [attr.stroke]="fieldStrokeColor"
+            [attr.fill]="field.hasItem ? 'red' : 'none'"
+            [attr.x]="field.x * widthOfField"
+            [attr.y]="field.y * heightOfField"
+      ></rect>
+    </g>
+    <g>
+      <rect *ngFor="let field of snake.getFields()"
+            [attr.width]="widthOfField"
+            [attr.height]="heightOfField"
+            [attr.stroke]="fieldStrokeColor"
+            [attr.fill]="'black'"
+            [attr.x]="field.x * widthOfField"
+            [attr.y]="field.y * heightOfField"
+      ></rect>
+    </g>
+  </g>
+</svg>

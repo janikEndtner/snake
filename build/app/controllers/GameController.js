@@ -1,19 +1,16 @@
+"use strict";
 /* app/controllers/welcome.controller.ts */
-
+Object.defineProperty(exports, "__esModule", { value: true });
 // Import only what we need from express
-import { Router, Request, Response } from 'express';
-import * as path from "path";
-
+var express_1 = require("express");
 // Assign router to the express.Router() instance
-const router: Router = Router();
-
+var router = express_1.Router();
 // The / here corresponds to the route that the WelcomeController
 // is mounted on in the server.ts file.
 // In this case it's /welcome
-router.get('/', (req: Request, res: Response) => {
+router.get('/', function (req, res) {
     // Reply with a hello world when no name param is provided
-    res.sendFile(path.resolve('build/front_end/index.html'));
+    res.sendFile('../build/front_end/index.html');
 });
-
 // Export the express.Router() instance to be used by server.ts
-export const GameController: Router = router;
+exports.GameController = router;

@@ -11,7 +11,7 @@ var controllers_1 = require("./controllers");
 // Create a new express application instance
 var app = express_1.default();
 // The port the express app will listen on
-var port = 3000;
+var port = process.env.PORT || 3000;
 // Mount the WelcomeController at the /welcome route
 app.use('/welcome', controllers_1.GameController);
 // Serve the application at the given port

@@ -6,6 +6,7 @@
     "typescript": "^2.7.1"
   },
   "scripts": {
-    "tsc": "tsc"
+    "tsc": "tsc",
+    "start": "node build/server.js"
   }
 }

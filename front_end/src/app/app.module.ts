@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
 import {GameComponent} from './game/game.component';
+import {WebSocketService} from "./web-socket.service";
 
 @NgModule({
   declarations: [
@@ -12,7 +13,7 @@ import {GameComponent} from './game/game.component';
   imports: [
     BrowserModule
   ],
-  providers: [],
+  providers: [WebSocketService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

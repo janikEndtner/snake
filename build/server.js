@@ -13,19 +13,26 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // Import everything from express and assign it to the express variable
 var express_1 = __importDefault(require("express"));
-// Import WelcomeController from controllers entry point
 var controllers_1 = require("./controllers");
 var path = __importStar(require("path"));
 // Create a new express application instance
 var app = express_1.default();
-// The port the express app will listen on
-var port = process.env.PORT || 3000;
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 app.use(express_1.default.static(path.resolve('build/front_end')));
 // Mount the WelcomeController at the /welcome route
 app.use('/game', controllers_1.GameController);
+io.on('connection', function (socket) {
+    socket.emit('message', { hello: 'world' });
+    socket.on('my other event', function (data) {
+        console.log(data);
+    });
+});
 app.get('/', function (req, res) { return res.redirect('/game'); });
-// Serve the application at the given port
-app.listen(port, function () {
+// Serve the application at the given
+// The port the express app will listen on
+var port = process.env.PORT || 3000;
+server.listen(port, function () {
     // Success callback
     console.log("Listening at http://localhost:" + port + "/");
 });

@@ -2,6 +2,17 @@ import {Component, HostListener, OnInit} from '@angular/core';
 import {Field} from '../field.model';
 import {Snake} from '../snake';
 import {ItemHandler} from '../item-handler';
+import {WebSocketSubject} from "rxjs/internal/observable/dom/WebSocketSubject";
+import {WebSocketService} from "../web-socket.service";
+import {Subject} from "rxjs";
+
+export class Message {
+  constructor(
+    public sender: string,
+    public content: string,
+    public isBroadcast = false,
+  ) { }
+}
 
 @Component({
   selector: 'app-game',
@@ -28,8 +39,17 @@ export class GameComponent implements OnInit {
   itemHandler: ItemHandler;
   gameRunning: boolean = false;
 
+  messages: Subject<any>;
 
-  constructor() { }
+  constructor(
+    private wsService: WebSocketService
+  ) {
+    wsService
+      .connect()
+      .subscribe(d => {
+        console.log(d)
+      })
+  }
 
   ngOnInit() {
     this.initGame();

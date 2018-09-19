@@ -1,11 +1,9 @@
-import {Field} from './field.model';
+import {Field} from '../../shared/field.model';
 
 export class ItemHandler {
-  private counter: number;
   private colNumber: number;
   private rowNumber: number;
   private fieldsReference: Field[][];
-  private itemFrequency: number;
   private previousItemField: Field;
 
   constructor(field: Field[][], rowNumber: number, colNumber: number) {
@@ -20,15 +18,18 @@ export class ItemHandler {
     let y = Math.floor(Math.random() * this.rowNumber);
     this.fieldsReference[x][y].hasItem = true;
     this.previousItemField = this.fieldsReference[x][y];
-    console.log(`create item on (${x},${y})`)
+    console.log(`create item on (${x},${y})`);
+    return this.previousItemField;
   }
 
   private removeItem() {
     this.previousItemField.hasItem = false;
+    return this.previousItemField;
   }
 
   public replaceItem() {
-    this.removeItem();
-    this.setItem();
+    let removed = this.removeItem();
+    let added = this.setItem();
+    return [removed, added];
   }
 }

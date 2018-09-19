@@ -1,19 +1,31 @@
-/* app/controllers/welcome.controller.ts */
-
-// Import only what we need from express
-import { Router, Request, Response } from 'express';
+import express, {Request, Response} from 'express';
 import * as path from "path";
+import {Game} from "../game/game.class";
 
-// Assign router to the express.Router() instance
-const router: Router = Router();
+export const GameController = function (io:any) {
+    let router = express.Router();
+    let game: Game;
 
-// The / here corresponds to the route that the WelcomeController
-// is mounted on in the server.ts file.
-// In this case it's /welcome
-router.get('/', (req: Request, res: Response) => {
-    // Reply with a hello world when no name param is provided
-    res.sendFile(path.resolve('build/front_end/index.html'));
-});
+    router.get('/', (req: Request, res: Response) => {
+        // Reply with a hello world when no name param is provided
+        res.sendFile(path.resolve('build/front_end/index.html'));
+    });
 
-// Export the express.Router() instance to be used by server.ts
-export const GameController: Router = router;
+    io.on('connection', (socket: any) => {
+
+        socket.on('startGame', (data: any) => {
+            game = new Game();
+            game.startGame()
+                .subscribe(d => {
+                    socket.emit('step', d);
+                });
+        });
+
+        socket.on('changeDirection', function (data: string) {
+            console.log(`direction changed: ${data}`);
+            game.changeDirection(data);
+        });
+    });
+
+    return router;
+};

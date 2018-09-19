@@ -1,16 +1,37 @@
 "use strict";
-/* app/controllers/welcome.controller.ts */
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-// Import only what we need from express
-var express_1 = require("express");
-// Assign router to the express.Router() instance
-var router = express_1.Router();
-// The / here corresponds to the route that the WelcomeController
-// is mounted on in the server.ts file.
-// In this case it's /welcome
-router.get('/', function (req, res) {
-    // Reply with a hello world when no name param is provided
-    res.sendFile('../build/front_end/index.html');
-});
-// Export the express.Router() instance to be used by server.ts
-exports.GameController = router;
+var express_1 = __importDefault(require("express"));
+var path = __importStar(require("path"));
+var game_class_1 = require("../game/game.class");
+exports.GameController = function (io) {
+    var router = express_1.default.Router();
+    var game;
+    router.get('/', function (req, res) {
+        // Reply with a hello world when no name param is provided
+        res.sendFile(path.resolve('build/front_end/index.html'));
+    });
+    io.on('connection', function (socket) {
+        socket.on('startGame', function (data) {
+            game = new game_class_1.Game();
+            game.startGame()
+                .subscribe(function (d) {
+                socket.emit('step', d);
+            });
+        });
+        socket.on('changeDirection', function (data) {
+            console.log("direction changed: " + data);
+            game.changeDirection(JSON.parse(data).direction);
+        });
+    });
+    return router;
+};

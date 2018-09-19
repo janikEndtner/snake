@@ -1,18 +1,7 @@
 import {Component, HostListener, OnInit} from '@angular/core';
-import {Field} from '../field.model';
-import {Snake} from '../snake';
-import {ItemHandler} from '../item-handler';
-import {WebSocketSubject} from "rxjs/internal/observable/dom/WebSocketSubject";
+import {Field} from '../../../../shared/field.model';
 import {WebSocketService} from "../web-socket.service";
 import {Subject} from "rxjs";
-
-export class Message {
-  constructor(
-    public sender: string,
-    public content: string,
-    public isBroadcast = false,
-  ) { }
-}
 
 @Component({
   selector: 'app-game',
@@ -28,96 +17,70 @@ export class GameComponent implements OnInit {
 
   pxWidth: number = 500;
   pxHeight: number = 500;
-  colNumber: number = 30;
-  rowNumber: number = 30;
   fields: Field[][] = [];
   heightOfField: number;
   widthOfField: number;
   fieldStrokeColor = "lightgray";
-  snake: Snake = null;
-  gameSpeed: number = 100;
-  itemHandler: ItemHandler;
-  gameRunning: boolean = false;
 
   messages: Subject<any>;
 
   constructor(
     private wsService: WebSocketService
-  ) {
-    wsService
-      .connect()
-      .subscribe(d => {
-        console.log(d)
-      })
-  }
+  ) {}
 
   ngOnInit() {
-    this.initGame();
+    this.wsService
+      .connect();
+
+    this.wsService.getSteps()
+      .subscribe(d => {
+        if (d.board) {
+          this.createBoard(d.board);
+        } else if (d.changes) {
+          this.doChanges(d.changes);
+        }
+      });
+
+    this.wsService.send('startGame', null);
   }
 
-  initGame() {
-    this.gameRunning = true;
-    this.createFields();
-    this.itemHandler = new ItemHandler(this.fields, this.rowNumber, this.colNumber);
-
-    this.snake = new Snake([
-      {x: 0, y: 0},
-      {x: 1, y: 0},
-      {x: 2, y: 0},
-      {x: 3, y: 0}
-    ], this.itemHandler);
-    this.snake.directionRight();
-    this.startGame();
+  private createBoard(board: Field[][]) {
+    this.fields = board;
+    this.heightOfField = this.pxHeight/board.length;
+    this.widthOfField = this.pxWidth/board[0].length;
   }
 
-  private startGame() {
-    const interval = setInterval(() => {
-      let nextStep = this.snake.getNextStep();
-      if (this.checkIfNextMovePossible(this.snake.getNextStep())) {
-        this.snake.makeStep(this.fields[nextStep.y][nextStep.x]);
-      } else {
-        console.log(this.snake.getNextStep());
-        clearInterval(interval);
-        this.gameRunning = false;
-      }
-    }, this.gameSpeed)
-  }
 
-  private createFields() {
-    for (let i = 0; i < this.colNumber; i++) {
-      this.fields.push([]);
-      for (let j = 0; j < this.rowNumber; j++) {
-        let field: Field = {
-          x: j,
-          y: i
-        };
-        this.fields[this.fields.length - 1].push(field)
-      }
-    }
-    console.log(this.fields);
-    this.heightOfField = this.pxHeight / this.rowNumber;
-    this.widthOfField = this.pxWidth / this.colNumber;
+  private doChanges(changes: Field[]) {
+    changes.forEach(d => {
+      this.fields[d.y][d.x] = d;
+    })
   }
 
   private moveSnake(event: KeyboardEvent) {
     switch (event.key) {
       case 'ArrowUp':
-        this.snake.directionUp();
+        this.wsService.send('changeDirection', {direction: 'up'});
         break;
       case 'ArrowDown':
-        this.snake.directionDown();
+        this.wsService.send('changeDirection', {direction: 'down'});
         break;
       case 'ArrowRight':
-        this.snake.directionRight();
+        this.wsService.send('changeDirection', {direction: 'right'});
         break;
       case 'ArrowLeft':
-        this.snake.directionLeft();
+        this.wsService.send('changeDirection', {direction: 'left'});
         break;
     }
   }
 
-  private checkIfNextMovePossible(field: Field) {
-    return field.x >= 0 && field.x < this.colNumber
-    && field.y >= 0 && field.y < this.rowNumber;
+  getColor(field) {
+    if (field.hasSnake) {
+      return 'black';
+    } else if (field.hasItem) {
+      return 'red'
+    } else {
+      return 'none';
+    }
   }
 }

@@ -151,7 +151,7 @@ module.exports = "svg {\r\n  border: 5px solid black;\r\n}\r\n"
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "<div>\n  <table>\n    <tr>\n      <td>Snake Lenght: </td>\n      <!--<td>{{snake.getFields().length}}</td>-->\n    </tr>\n  </table>\n  <button (click)=\"startGame()\">Start game</button>\n</div>\n<svg [attr.height]=\"pxHeight\" [attr.width]=\"pxWidth\">\n  <g>\n    <g *ngFor=\"let row of fields\">\n      <rect *ngFor=\"let field of row\"\n            [attr.width]=\"widthOfField\"\n            [attr.height]=\"heightOfField\"\n            [attr.stroke]=\"fieldStrokeColor\"\n            [attr.fill]=\"getColor(field)\"\n            [attr.x]=\"field.x * widthOfField\"\n            [attr.y]=\"field.y * heightOfField\"\n      ></rect>\n    </g>\n  </g>\n</svg>\n"
+module.exports = "<div>\n  <table>\n    <tr>\n      <td>Snake Lenght: </td>\n      <!--<td>{{snake.getFields().length}}</td>-->\n    </tr>\n  </table>\n  <button (click)=\"joinGame()\" [disabled]=\"joined\">Join game</button>\n  <button *ngIf=\"gameState === 'no game'\" (click)=\"startGame()\">Start game</button>\n  <button *ngIf=\"gameState === 'running'\" disabled>Game running</button>\n  <p *ngIf=\"joined\">You have successfully joined the game</p>\n</div>\n<svg [attr.height]=\"pxHeight\" [attr.width]=\"pxWidth\">\n  <g>\n    <g *ngFor=\"let row of fields\">\n      <rect *ngFor=\"let field of row\"\n            [attr.width]=\"widthOfField\"\n            [attr.height]=\"heightOfField\"\n            [attr.stroke]=\"fieldStrokeColor\"\n            [attr.fill]=\"getColor(field)\"\n            [attr.x]=\"field.x * widthOfField\"\n            [attr.y]=\"field.y * heightOfField\"\n      ></rect>\n    </g>\n  </g>\n</svg>\n"
 
 /***/ }),
 
@@ -190,6 +190,8 @@ var GameComponent = /** @class */ (function () {
         this.pxHeight = 500;
         this.fields = [];
         this.fieldStrokeColor = "lightgray";
+        this.joined = false;
+        this.gameState = 'no game';
     }
     GameComponent.prototype.handleKeyDown = function (event) {
         this.moveSnake(event);
@@ -207,17 +209,30 @@ var GameComponent = /** @class */ (function () {
             alert('an error occured. See console for more information');
         });
     };
-    GameComponent.prototype.startGame = function () {
+    GameComponent.prototype.joinGame = function () {
         var _this = this;
         this.wsService
-            .connect();
-        this.wsService.send('startGame', null);
+            .connect()
+            .subscribe(function (d) {
+            if (d.status) {
+                _this.joined = d.status;
+            }
+            else if (d.changes) {
+                _this.doChanges(d.changes);
+            }
+        });
         this.wsService.getSteps()
             .subscribe(function (d) {
             if (d.changes) {
                 _this.doChanges(d.changes);
             }
+            else if (d.gameState) {
+                _this.gameState = d.gameState;
+            }
         });
+    };
+    GameComponent.prototype.startGame = function () {
+        this.wsService.send('startGame', null);
     };
     GameComponent.prototype.createBoard = function (board) {
         this.fields = board;
@@ -311,14 +326,25 @@ var WebSocketService = /** @class */ (function () {
     function WebSocketService() {
     }
     WebSocketService.prototype.connect = function () {
-        this.socket = socket_io_client__WEBPACK_IMPORTED_MODULE_1__(_environments_environment__WEBPACK_IMPORTED_MODULE_3__["environment"].api);
+        var _this = this;
+        return new rxjs__WEBPACK_IMPORTED_MODULE_2__["Observable"](function (observer) {
+            _this.socket = socket_io_client__WEBPACK_IMPORTED_MODULE_1__(_environments_environment__WEBPACK_IMPORTED_MODULE_3__["environment"].api);
+            _this.socket.on('connected', function (d) {
+                observer.next({ status: true });
+            });
+            _this.socket.on('step', function (d) {
+                observer.next(d);
+            });
+        });
     };
     WebSocketService.prototype.getSteps = function () {
         var _this = this;
         return new rxjs__WEBPACK_IMPORTED_MODULE_2__["Observable"](function (observer) {
             _this.socket.on('step', function (data) {
-                console.log("Received message from Websocket Server");
                 observer.next(data);
+            });
+            _this.socket.on('gameState', function (data) {
+                observer.next({ gameState: data });
             });
             return function () {
                 _this.socket.disconnect();

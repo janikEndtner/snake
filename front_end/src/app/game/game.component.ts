@@ -23,6 +23,8 @@ export class GameComponent implements OnInit {
   heightOfField: number;
   widthOfField: number;
   fieldStrokeColor = "lightgray";
+  joined: boolean = false;
+  gameState: string = 'no game';
 
   messages: Subject<any>;
 
@@ -43,19 +45,30 @@ export class GameComponent implements OnInit {
         console.log(error1);
         alert('an error occured. See console for more information');
       })
-
   }
 
-  startGame() {
+  joinGame() {
     this.wsService
-      .connect();
-    this.wsService.send('startGame', null);
+      .connect()
+      .subscribe(d => {
+        if (d.status) {
+          this.joined = d.status;
+        } else if (d.changes) {
+          this.doChanges(d.changes)
+        }
+      });
     this.wsService.getSteps()
       .subscribe(d => {
         if (d.changes) {
           this.doChanges(d.changes);
+        } else if (d.gameState) {
+          this.gameState = d.gameState;
         }
       });
+  }
+
+  startGame() {
+    this.wsService.send('startGame', null);
   }
 
   private createBoard(board: Field[][]) {

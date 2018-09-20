@@ -1,10 +1,12 @@
 import express, {Request, Response} from 'express';
 import * as path from "path";
 import {Game} from "../game/game.class";
+import {Field} from "../../shared/field.model";
 
 export const GameController = function (io:any) {
     let router = express.Router();
     let game: Game;
+    let snakeCounter = 0;
 
     router.get('/', (req: Request, res: Response) => {
         // Reply with a hello world when no name param is provided
@@ -18,18 +20,39 @@ export const GameController = function (io:any) {
     });
 
     io.on('connection', (socket: any) => {
+        // QUICKFIX
+        if (game) {
+            console.log('somebody has joined the room');
+            socket.emit('connected');
 
-        socket.on('startGame', (data: any) => {
-            game.startGame()
-                .subscribe(d => {
-                    socket.emit('step', d);
-                });
-        });
+            if (snakeCounter === 0) {
+                console.log('add snake 1');
+                game.addSnake1();
+                snakeCounter++;
+            } else {
+                console.log('add snake 2');
+                game.addSnake2()
+            }
 
-        socket.on('changeDirection', function (data: string) {
-            console.log(`direction changed: ${data}`);
-            game.changeDirection(JSON.parse(data).direction);
-        });
+            game.getSteps().subscribe(d => {
+                socket.emit('step', d);
+            });
+
+            socket.on('startGame', (data: any) => {
+                console.log('somebody started the game');
+                game.startGame();
+                socket.emit('gameState', 'running');
+            });
+
+            socket.on('changeDirection', function (data: string) {
+                console.log(`direction changed: ${data}`);
+                game.changeDirection(JSON.parse(data).direction, 0);
+            });
+
+            let changes:Field[] = [];
+            game.getBoard().forEach(d => changes = changes.concat(d));
+            socket.emit('step', {changes: changes});
+        }
     });
 
     return router;

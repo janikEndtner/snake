@@ -1,71 +1,107 @@
 import {Field} from "../../shared/field.model";
 import {ItemHandler} from "./item-handler.class";
 import {Snake} from "./snake.class";
-import {Observable} from "rxjs/index";
+import {BehaviorSubject, Observable} from "rxjs/index";
 import {Board} from "./board.class";
 import {FieldCoordinates} from "./coordinates";
 
 export class Game {
     private colNumber: number = 30;
     private rowNumber: number = 30;
-    private snake: Snake;
-    private initialFieldsSnake = [
+    private snakes: Snake[] = [];
+    private initialFieldsSnake1 = [
         {x: 4, y: 1},
         {x: 3, y: 1},
         {x: 2, y: 1},
         {x: 1, y: 1}
     ];
+    private initialFieldsSnake2 = [
+        {x: 25, y: 28},
+        {x: 26, y: 28},
+        {x: 27, y: 28},
+        {x: 28, y: 28}
+    ];
     private gameSpeed: number = 100;
     private itemHandler: ItemHandler;
     private gameRunning: boolean = false;
     private board: Board;
+    private stepMessages: BehaviorSubject<{changes: any}> = new BehaviorSubject({changes: null});
 
     constructor() {
     }
 
     public initGame() {
         this.board = new Board(this.rowNumber, this.colNumber);
-        this.snake = new Snake(this.initialFieldsSnake, this.itemHandler, this.board);
-        this.snake.directionRight();
+    }
+
+    public addSnake1() {
+        this.snakes.push(new Snake(this.initialFieldsSnake1, this.itemHandler, this.board));
+        this.snakes[0].directionRight();
+    }
+
+    public addSnake2() {
+        this.snakes.push(new Snake(this.initialFieldsSnake2, this.itemHandler, this.board));
+        this.snakes[1].directionLeft();
     }
 
     public getBoard(): Field[][] {
         return this.board.getBoard();
     }
 
-    public startGame() {
-        return new Observable(observer => {
+    public startGame(): void {
+        this.gameRunning = true;
+        const interval = setInterval(() => {
+            let changes: any = [];
 
-            this.gameRunning = true;
-            const interval = setInterval(() => {
-                let nextStep = this.snake.getNextStep();
-                if (this.board.checkIfNextMovePossible(nextStep)) {
-                    let changes = this.snake.makeStep(this.board.getField(nextStep.x, nextStep.y));
-                    observer.next({
-                        changes: changes
-                    });
-                } else {
-                    console.log("game stopped: move not possible");
-                    clearInterval(interval);
-                    this.gameRunning = false;
-                }
-            }, this.gameSpeed);
-        });
+            // check snake 1
+            let nextStep = this.snakes[0].getNextStep();
+            if (this.board.checkIfNextMovePossible(nextStep)) {
+                changes = changes.concat(this.snakes[0].makeStep(this.board.getField(nextStep.x, nextStep.y)));
+                console.log(changes);
+            } else {
+                console.log("game stopped: move not possible. Snake 1 lost");
+                clearInterval(interval);
+                this.gameRunning = false;
+            }
+
+            // check snake 2
+            nextStep = this.snakes[1].getNextStep();
+            if (this.board.checkIfNextMovePossible(nextStep)) {
+                changes = changes.concat(this.snakes[1].makeStep(this.board.getField(nextStep.x, nextStep.y)));
+                console.log(changes);
+            } else {
+                console.log("game stopped: move not possible. Snake 2 lost");
+                clearInterval(interval);
+                this.gameRunning = false;
+            }
+
+            // emit changes
+            this.stepMessages.next({changes: changes});
+
+        }, this.gameSpeed);
     }
 
-    public changeDirection(direction: string) {
+    public getSteps(): Observable<{changes:any}> {
+        return this.stepMessages.asObservable();
+    }
+
+    /**
+     * @param direction
+     * @param i: Snake 0 or 1
+     */
+    public changeDirection(direction: string, i: number) {
         switch (direction) {
             case 'up':
-                this.snake.directionUp();
+                this.snakes[i].directionUp();
                 break;
             case 'down':
-                this.snake.directionDown();
+                this.snakes[i].directionDown();
                 break;
             case 'right':
-                this.snake.directionRight();
+                this.snakes[i].directionRight();
                 break;
             case 'left':
-                this.snake.directionLeft();
+                this.snakes[i].directionLeft();
                 break;
 
         }

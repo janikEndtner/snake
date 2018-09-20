@@ -7,56 +7,88 @@ var Game = /** @class */ (function () {
     function Game() {
         this.colNumber = 30;
         this.rowNumber = 30;
-        this.initialFieldsSnake = [
+        this.snakes = [];
+        this.initialFieldsSnake1 = [
             { x: 4, y: 1 },
             { x: 3, y: 1 },
             { x: 2, y: 1 },
             { x: 1, y: 1 }
         ];
+        this.initialFieldsSnake2 = [
+            { x: 25, y: 28 },
+            { x: 26, y: 28 },
+            { x: 27, y: 28 },
+            { x: 28, y: 28 }
+        ];
         this.gameSpeed = 100;
         this.gameRunning = false;
+        this.stepMessages = new index_1.BehaviorSubject({ changes: null });
     }
     Game.prototype.initGame = function () {
         this.board = new board_class_1.Board(this.rowNumber, this.colNumber);
-        this.snake = new snake_class_1.Snake(this.initialFieldsSnake, this.itemHandler, this.board);
-        this.snake.directionRight();
+    };
+    Game.prototype.addSnake1 = function () {
+        this.snakes.push(new snake_class_1.Snake(this.initialFieldsSnake1, this.itemHandler, this.board));
+        this.snakes[0].directionRight();
+    };
+    Game.prototype.addSnake2 = function () {
+        this.snakes.push(new snake_class_1.Snake(this.initialFieldsSnake2, this.itemHandler, this.board));
+        this.snakes[1].directionLeft();
     };
     Game.prototype.getBoard = function () {
         return this.board.getBoard();
     };
     Game.prototype.startGame = function () {
         var _this = this;
-        return new index_1.Observable(function (observer) {
-            _this.gameRunning = true;
-            var interval = setInterval(function () {
-                var nextStep = _this.snake.getNextStep();
-                if (_this.board.checkIfNextMovePossible(nextStep)) {
-                    var changes = _this.snake.makeStep(_this.board.getField(nextStep.x, nextStep.y));
-                    observer.next({
-                        changes: changes
-                    });
-                }
-                else {
-                    console.log("game stopped: move not possible");
-                    clearInterval(interval);
-                    _this.gameRunning = false;
-                }
-            }, _this.gameSpeed);
-        });
+        this.gameRunning = true;
+        var interval = setInterval(function () {
+            var changes = [];
+            // check snake 1
+            var nextStep = _this.snakes[0].getNextStep();
+            if (_this.board.checkIfNextMovePossible(nextStep)) {
+                changes = changes.concat(_this.snakes[0].makeStep(_this.board.getField(nextStep.x, nextStep.y)));
+                console.log(changes);
+            }
+            else {
+                console.log("game stopped: move not possible. Snake 1 lost");
+                clearInterval(interval);
+                _this.gameRunning = false;
+            }
+            // check snake 2
+            nextStep = _this.snakes[1].getNextStep();
+            if (_this.board.checkIfNextMovePossible(nextStep)) {
+                changes = changes.concat(_this.snakes[1].makeStep(_this.board.getField(nextStep.x, nextStep.y)));
+                console.log(changes);
+            }
+            else {
+                console.log("game stopped: move not possible. Snake 2 lost");
+                clearInterval(interval);
+                _this.gameRunning = false;
+            }
+            // emit changes
+            _this.stepMessages.next({ changes: changes });
+        }, this.gameSpeed);
     };
-    Game.prototype.changeDirection = function (direction) {
+    Game.prototype.getSteps = function () {
+        return this.stepMessages.asObservable();
+    };
+    /**
+     * @param direction
+     * @param i: Snake 0 or 1
+     */
+    Game.prototype.changeDirection = function (direction, i) {
         switch (direction) {
             case 'up':
-                this.snake.directionUp();
+                this.snakes[i].directionUp();
                 break;
             case 'down':
-                this.snake.directionDown();
+                this.snakes[i].directionDown();
                 break;
             case 'right':
-                this.snake.directionRight();
+                this.snakes[i].directionRight();
                 break;
             case 'left':
-                this.snake.directionLeft();
+                this.snakes[i].directionLeft();
                 break;
         }
     };

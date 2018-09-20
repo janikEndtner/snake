@@ -5,7 +5,10 @@
       <!--<td>{{snake.getFields().length}}</td>-->
     </tr>
   </table>
-  <button (click)="startGame()">Start game</button>
+  <button (click)="joinGame()" [disabled]="joined">Join game</button>
+  <button *ngIf="gameState === 'no game'" (click)="startGame()">Start game</button>
+  <button *ngIf="gameState === 'running'" disabled>Game running</button>
+  <p *ngIf="joined">You have successfully joined the game</p>
 </div>
 <svg [attr.height]="pxHeight" [attr.width]="pxWidth">
   <g>

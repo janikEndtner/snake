@@ -16,6 +16,7 @@ var game_class_1 = require("../game/game.class");
 exports.GameController = function (io) {
     var router = express_1.default.Router();
     var game;
+    var snakeCounter = 0;
     router.get('/', function (req, res) {
         // Reply with a hello world when no name param is provided
         res.sendFile(path.resolve('build/front_end/index.html'));
@@ -26,16 +27,35 @@ exports.GameController = function (io) {
         res.send(JSON.stringify(game.getBoard()));
     });
     io.on('connection', function (socket) {
-        socket.on('startGame', function (data) {
-            game.startGame()
-                .subscribe(function (d) {
+        // QUICKFIX
+        if (game) {
+            console.log('somebody has joined the room');
+            socket.emit('connected');
+            if (snakeCounter === 0) {
+                console.log('add snake 1');
+                game.addSnake1();
+                snakeCounter++;
+            }
+            else {
+                console.log('add snake 2');
+                game.addSnake2();
+            }
+            game.getSteps().subscribe(function (d) {
                 socket.emit('step', d);
             });
-        });
-        socket.on('changeDirection', function (data) {
-            console.log("direction changed: " + data);
-            game.changeDirection(JSON.parse(data).direction);
-        });
+            socket.on('startGame', function (data) {
+                console.log('somebody started the game');
+                game.startGame();
+                socket.emit('gameState', 'running');
+            });
+            socket.on('changeDirection', function (data) {
+                console.log("direction changed: " + data);
+                game.changeDirection(JSON.parse(data).direction, 0);
+            });
+            var changes_1 = [];
+            game.getBoard().forEach(function (d) { return changes_1 = changes_1.concat(d); });
+            socket.emit('step', { changes: changes_1 });
+        }
     });
     return router;
 };

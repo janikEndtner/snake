@@ -21,21 +21,27 @@ export class Game {
     private board: Board;
 
     constructor() {
+    }
+
+    public initGame() {
         this.board = new Board(this.rowNumber, this.colNumber);
         this.snake = new Snake(this.initialFieldsSnake, this.itemHandler, this.board);
+        this.snake.directionRight();
+    }
+
+    public getBoard(): Field[][] {
+        return this.board.getBoard();
     }
 
     public startGame() {
         return new Observable(observer => {
 
             this.gameRunning = true;
-            this.snake.directionRight();
             const interval = setInterval(() => {
                 let nextStep = this.snake.getNextStep();
                 if (this.board.checkIfNextMovePossible(nextStep)) {
                     let changes = this.snake.makeStep(this.board.getField(nextStep.x, nextStep.y));
                     observer.next({
-                        board: null,
                         changes: changes
                     });
                 } else {
@@ -44,11 +50,6 @@ export class Game {
                     this.gameRunning = false;
                 }
             }, this.gameSpeed);
-
-            observer.next({
-                board: this.board.getBoard(),
-                changes: null
-            });
         });
     }
 

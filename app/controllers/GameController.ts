@@ -11,10 +11,15 @@ export const GameController = function (io:any) {
         res.sendFile(path.resolve('build/front_end/index.html'));
     });
 
+    router.post('/initGame', (req: Request, res: Response) => {
+        game = new Game();
+        game.initGame();
+        res.send(JSON.stringify(game.getBoard()));
+    });
+
     io.on('connection', (socket: any) => {
 
         socket.on('startGame', (data: any) => {
-            game = new Game();
             game.startGame()
                 .subscribe(d => {
                     socket.emit('step', d);
@@ -23,7 +28,7 @@ export const GameController = function (io:any) {
 
         socket.on('changeDirection', function (data: string) {
             console.log(`direction changed: ${data}`);
-            game.changeDirection(data);
+            game.changeDirection(JSON.parse(data).direction);
         });
     });
 

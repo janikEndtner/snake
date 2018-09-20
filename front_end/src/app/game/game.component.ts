@@ -2,6 +2,8 @@ import {Component, HostListener, OnInit} from '@angular/core';
 import {Field} from '../../../../shared/field.model';
 import {WebSocketService} from "../web-socket.service";
 import {Subject} from "rxjs";
+import {HttpClient} from "@angular/common/http";
+import {environment} from "../../environments/environment";
 
 @Component({
   selector: 'app-game',
@@ -25,23 +27,35 @@ export class GameComponent implements OnInit {
   messages: Subject<any>;
 
   constructor(
-    private wsService: WebSocketService
+    private wsService: WebSocketService,
+    private http: HttpClient
   ) {}
 
   ngOnInit() {
+    this.initGame();
+  }
+
+  private initGame() {
+    this.http.post(environment.api + 'game/initGame', {})
+      .subscribe((data:Field[][]) => {
+        this.createBoard(data);
+      }, error1 => {
+        console.log(error1);
+        alert('an error occured. See console for more information');
+      })
+
+  }
+
+  startGame() {
     this.wsService
       .connect();
-
+    this.wsService.send('startGame', null);
     this.wsService.getSteps()
       .subscribe(d => {
-        if (d.board) {
-          this.createBoard(d.board);
-        } else if (d.changes) {
+        if (d.changes) {
           this.doChanges(d.changes);
         }
       });
-
-    this.wsService.send('startGame', null);
   }
 
   private createBoard(board: Field[][]) {

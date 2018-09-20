@@ -15,20 +15,24 @@ var Game = /** @class */ (function () {
         ];
         this.gameSpeed = 100;
         this.gameRunning = false;
+    }
+    Game.prototype.initGame = function () {
         this.board = new board_class_1.Board(this.rowNumber, this.colNumber);
         this.snake = new snake_class_1.Snake(this.initialFieldsSnake, this.itemHandler, this.board);
-    }
+        this.snake.directionRight();
+    };
+    Game.prototype.getBoard = function () {
+        return this.board.getBoard();
+    };
     Game.prototype.startGame = function () {
         var _this = this;
         return new index_1.Observable(function (observer) {
             _this.gameRunning = true;
-            _this.snake.directionRight();
             var interval = setInterval(function () {
                 var nextStep = _this.snake.getNextStep();
                 if (_this.board.checkIfNextMovePossible(nextStep)) {
                     var changes = _this.snake.makeStep(_this.board.getField(nextStep.x, nextStep.y));
                     observer.next({
-                        board: null,
                         changes: changes
                     });
                 }
@@ -38,10 +42,6 @@ var Game = /** @class */ (function () {
                     _this.gameRunning = false;
                 }
             }, _this.gameSpeed);
-            observer.next({
-                board: _this.board.getBoard(),
-                changes: null
-            });
         });
     };
     Game.prototype.changeDirection = function (direction) {

@@ -57,11 +57,11 @@ export class Snake {
         this.board.removeSnakeFromField(removedCoordinates);
         // @ts-ignore
         removedField = this.board.getField(removedCoordinates.x, removedCoordinates.y);
+        changedItems = [field, removedField];
     } else {
-      changedItems = this.board.replaceItem();
+      changedItems = [field].concat(this.board.replaceItem());
     }
-    return [field, removedField].concat(changedItems)
-
+    return changedItems;
   }
   public getFields(): Field[] {
     return this.snakeFields;

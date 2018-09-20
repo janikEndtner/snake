@@ -20,9 +20,13 @@ exports.GameController = function (io) {
         // Reply with a hello world when no name param is provided
         res.sendFile(path.resolve('build/front_end/index.html'));
     });
+    router.post('/initGame', function (req, res) {
+        game = new game_class_1.Game();
+        game.initGame();
+        res.send(JSON.stringify(game.getBoard()));
+    });
     io.on('connection', function (socket) {
         socket.on('startGame', function (data) {
-            game = new game_class_1.Game();
             game.startGame()
                 .subscribe(function (d) {
                 socket.emit('step', d);

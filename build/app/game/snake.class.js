@@ -50,15 +50,12 @@ var Snake = /** @class */ (function () {
             this.board.removeSnakeFromField(removedCoordinates);
             // @ts-ignore
             removedField = this.board.getField(removedCoordinates.x, removedCoordinates.y);
+            changedItems = [field, removedField];
         }
         else {
-            changedItems = this.board.replaceItem();
+            changedItems = [field].concat(this.board.replaceItem());
         }
-        if (removedField) {
-            return [field, removedField].concat(changedItems);
-        } else {
-            return [field].concat(changedItems);
-        }
+        return changedItems;
     };
     Snake.prototype.getFields = function () {
         return this.snakeFields;

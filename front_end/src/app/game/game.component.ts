@@ -49,6 +49,19 @@ export class GameComponent implements OnInit {
       .connect();
   }
 
+  private restartGame() {
+    this.joined = false;
+    this.gameState = 'no game';
+    this.http.post(environment.api + 'game/restart', {})
+      .subscribe((data:Field[][]) => {
+        this.createBoard(data);
+        this.gameState = 'no game';
+      }, error1 => {
+        console.log(error1);
+        alert('an error occured. See console for more information');
+      });
+  }
+
   joinGame() {
     this.wsService.joinGame().subscribe(d => {
         if (d.status) {
@@ -86,17 +99,17 @@ export class GameComponent implements OnInit {
 
   private moveSnake(event: KeyboardEvent) {
     switch (event.key) {
-      case 'ArrowUp':
-        this.wsService.send('changeDirection', {direction: 'up'});
+      case 'ArrowUp' || 'KeyW':
+        this.wsService.changeDirection('up');
         break;
-      case 'ArrowDown':
-        this.wsService.send('changeDirection', {direction: 'down'});
+      case 'ArrowDown' || 'KeyS':
+        this.wsService.changeDirection('down');
         break;
-      case 'ArrowRight':
-        this.wsService.send('changeDirection', {direction: 'right'});
+      case 'ArrowRight' || 'KeyD':
+        this.wsService.changeDirection('right');
         break;
-      case 'ArrowLeft':
-        this.wsService.send('changeDirection', {direction: 'left'});
+      case 'ArrowLeft' || 'KeyA':
+        this.wsService.changeDirection('left');
         break;
     }
   }

@@ -6,9 +6,11 @@
     </tr>
   </table>
   <button (click)="joinGame()" [disabled]="joined">Join game</button>
-  <button *ngIf="gameState === 'no game'" (click)="startGame()">Start game</button>
+  <button *ngIf="gameState === 'no game'" [disabled]="!joined" (click)="startGame()">Start game</button>
   <button *ngIf="gameState === 'running'" disabled>Game running</button>
+  <button (click)="restartGame()" *ngIf="gameState === 'running'">Restart Game</button>
   <p *ngIf="joined">You have successfully joined the game</p>
+  <p *ngIf="!joined">Not connected</p>
 </div>
 <svg [attr.height]="pxHeight" [attr.width]="pxWidth">
   <g>

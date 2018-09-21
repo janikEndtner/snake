@@ -12,6 +12,7 @@ export class WebSocketService {
 
   // Our socket connection
   private socket;
+  private identifier: number;
 
   constructor() { }
 
@@ -24,6 +25,7 @@ export class WebSocketService {
     return new Observable<{status?: boolean, changes?: Field[]}>(observer => {
       this.socket.on('joined', d => {
         observer.next({status: true});
+        this.identifier = d;
       });
       this.socket.on('step', d => {
         observer.next(d);
@@ -47,6 +49,13 @@ export class WebSocketService {
 
   send(eventName: string, data: Object): void {
     this.socket.emit(eventName, JSON.stringify(data));
+  }
+
+  changeDirection(direction: string) {
+    this.socket.emit('changeDirection', {
+      direction: direction,
+      id: this.identifier
+    })
   }
 
 }

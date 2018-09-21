@@ -28,11 +28,11 @@ var Game = /** @class */ (function () {
         this.board = new board_class_1.Board(this.rowNumber, this.colNumber);
     };
     Game.prototype.addSnake1 = function () {
-        this.snakes.push(new snake_class_1.Snake(this.initialFieldsSnake1, this.itemHandler, this.board));
+        this.snakes.push(new snake_class_1.Snake(this.initialFieldsSnake1, this.board));
         this.snakes[0].directionRight();
     };
     Game.prototype.addSnake2 = function () {
-        this.snakes.push(new snake_class_1.Snake(this.initialFieldsSnake2, this.itemHandler, this.board));
+        this.snakes.push(new snake_class_1.Snake(this.initialFieldsSnake2, this.board));
         this.snakes[1].directionLeft();
     };
     Game.prototype.getBoard = function () {
@@ -42,12 +42,10 @@ var Game = /** @class */ (function () {
         var _this = this;
         this.gameRunning = true;
         var interval = setInterval(function () {
-            var changes = [];
             // check snake 1
             var nextStep = _this.snakes[0].getNextStep();
             if (_this.board.checkIfNextMovePossible(nextStep)) {
-                changes = changes.concat(_this.snakes[0].makeStep(_this.board.getField(nextStep.x, nextStep.y)));
-                console.log(changes);
+                _this.snakes[0].makeStep(_this.board.getField(nextStep.x, nextStep.y));
             }
             else {
                 console.log("game stopped: move not possible. Snake 1 lost");
@@ -57,8 +55,7 @@ var Game = /** @class */ (function () {
             // check snake 2
             nextStep = _this.snakes[1].getNextStep();
             if (_this.board.checkIfNextMovePossible(nextStep)) {
-                changes = changes.concat(_this.snakes[1].makeStep(_this.board.getField(nextStep.x, nextStep.y)));
-                console.log(changes);
+                _this.snakes[1].makeStep(_this.board.getField(nextStep.x, nextStep.y));
             }
             else {
                 console.log("game stopped: move not possible. Snake 2 lost");
@@ -66,11 +63,14 @@ var Game = /** @class */ (function () {
                 _this.gameRunning = false;
             }
             // emit changes
-            _this.stepMessages.next({ changes: changes });
+            _this.stepMessages.next({ changes: _this.getChanges() });
         }, this.gameSpeed);
     };
     Game.prototype.getSteps = function () {
         return this.stepMessages.asObservable();
+    };
+    Game.prototype.getChanges = function () {
+        return this.board.getChanges();
     };
     /**
      * @param direction

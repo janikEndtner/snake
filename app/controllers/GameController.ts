@@ -22,20 +22,25 @@ export const GameController = function (io:any) {
     io.on('connection', (socket: any) => {
         // QUICKFIX
         if (game) {
-            console.log('somebody has joined the room');
-            socket.emit('connected');
+            console.log('somebody has connected');
 
-            if (snakeCounter === 0) {
-                console.log('add snake 1');
-                game.addSnake1();
-                snakeCounter++;
-            } else {
-                console.log('add snake 2');
-                game.addSnake2()
-            }
+            socket.on('join', () => {
+                if (snakeCounter === 0) {
+                    console.log('add snake 1');
+                    game.addSnake1();
+                    snakeCounter++;
+                    socket.emit('joined');
+                } else if (snakeCounter === 1) {
+                    console.log('add snake 2');
+                    game.addSnake2();
+                    socket.emit('joined');
+                } else {
+                    console.log('too many players')
+                }
 
-            game.getSteps().subscribe(d => {
-                socket.emit('step', d);
+                game.getSteps().subscribe(d => {
+                    socket.emit('step', d);
+                });
             });
 
             socket.on('startGame', (data: any) => {

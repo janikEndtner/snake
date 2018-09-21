@@ -27,7 +27,7 @@ export class ItemHandler {
     return this.previousItemField;
   }
 
-  public replaceItem() {
+  public replaceItem(): Field[] {
     let removed = this.removeItem();
     let added = this.setItem();
     return [removed, added];

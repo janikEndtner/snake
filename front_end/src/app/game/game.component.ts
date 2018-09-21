@@ -44,13 +44,13 @@ export class GameComponent implements OnInit {
       }, error1 => {
         console.log(error1);
         alert('an error occured. See console for more information');
-      })
+      });
+    this.wsService
+      .connect();
   }
 
   joinGame() {
-    this.wsService
-      .connect()
-      .subscribe(d => {
+    this.wsService.joinGame().subscribe(d => {
         if (d.status) {
           this.joined = d.status;
         } else if (d.changes) {

@@ -15,10 +15,14 @@ export class WebSocketService {
 
   constructor() { }
 
-  connect(): Observable<{status?: boolean, changes?: Field[]}> {
+  connect(): void {
+    this.socket = io(environment.api);
+  }
+
+  joinGame() {
+    this.send('join', null);
     return new Observable<{status?: boolean, changes?: Field[]}>(observer => {
-      this.socket = io(environment.api);
-      this.socket.on('connected', d => {
+      this.socket.on('joined', d => {
         observer.next({status: true});
       });
       this.socket.on('step', d => {

@@ -35,12 +35,12 @@ export class Game {
     }
 
     public addSnake1() {
-        this.snakes.push(new Snake(this.initialFieldsSnake1, this.itemHandler, this.board));
+        this.snakes.push(new Snake(this.initialFieldsSnake1, this.board));
         this.snakes[0].directionRight();
     }
 
     public addSnake2() {
-        this.snakes.push(new Snake(this.initialFieldsSnake2, this.itemHandler, this.board));
+        this.snakes.push(new Snake(this.initialFieldsSnake2, this.board));
         this.snakes[1].directionLeft();
     }
 
@@ -51,13 +51,11 @@ export class Game {
     public startGame(): void {
         this.gameRunning = true;
         const interval = setInterval(() => {
-            let changes: any = [];
 
             // check snake 1
             let nextStep = this.snakes[0].getNextStep();
             if (this.board.checkIfNextMovePossible(nextStep)) {
-                changes = changes.concat(this.snakes[0].makeStep(this.board.getField(nextStep.x, nextStep.y)));
-                console.log(changes);
+                this.snakes[0].makeStep(this.board.getField(nextStep.x, nextStep.y));
             } else {
                 console.log("game stopped: move not possible. Snake 1 lost");
                 clearInterval(interval);
@@ -67,8 +65,7 @@ export class Game {
             // check snake 2
             nextStep = this.snakes[1].getNextStep();
             if (this.board.checkIfNextMovePossible(nextStep)) {
-                changes = changes.concat(this.snakes[1].makeStep(this.board.getField(nextStep.x, nextStep.y)));
-                console.log(changes);
+                this.snakes[1].makeStep(this.board.getField(nextStep.x, nextStep.y));
             } else {
                 console.log("game stopped: move not possible. Snake 2 lost");
                 clearInterval(interval);
@@ -76,13 +73,17 @@ export class Game {
             }
 
             // emit changes
-            this.stepMessages.next({changes: changes});
+            this.stepMessages.next({changes: this.getChanges()});
 
         }, this.gameSpeed);
     }
 
     public getSteps(): Observable<{changes:any}> {
         return this.stepMessages.asObservable();
+    }
+
+    public getChanges(): Field[] {
+        return this.board.getChanges();
     }
 
     /**

@@ -1,11 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var Snake = /** @class */ (function () {
-    function Snake(initialFields, itemHandler, board) {
+    function Snake(initialFields, board) {
         this.directionX = 0; // could be -1, 0, 1
         this.directionY = 0; // could be -1, 0, 1
         this.snakeFields = initialFields;
-        this.itemHandler = itemHandler;
         this.board = board;
         this.initSnakeOnBoard();
     }
@@ -40,22 +39,13 @@ var Snake = /** @class */ (function () {
         };
     };
     Snake.prototype.makeStep = function (field) {
-        var removedField;
-        var changedItems = [];
         this.snakeFields.unshift({ x: field.x, y: field.y });
         this.board.addSnakeToField({ x: field.x, y: field.y });
         if (!field.hasItem) {
             var removedCoordinates = this.snakeFields.pop();
             // @ts-ignore // cannot be undefined
             this.board.removeSnakeFromField(removedCoordinates);
-            // @ts-ignore
-            removedField = this.board.getField(removedCoordinates.x, removedCoordinates.y);
-            changedItems = [field, removedField];
         }
-        else {
-            changedItems = [field].concat(this.board.replaceItem());
-        }
-        return changedItems;
     };
     Snake.prototype.getFields = function () {
         return this.snakeFields;

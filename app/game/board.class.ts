@@ -8,6 +8,7 @@ export class Board {
     private rowNumber: number;
     private fields: Field[][] = [];
     private itemHandler: ItemHandler;
+    private changes: Field[] = [];
 
     constructor(rowNumber: number, colNumber: number) {
         this.colNumber = colNumber;
@@ -39,16 +40,24 @@ export class Board {
     }
     public addSnakeToField(coordinates: FieldCoordinates) {
         this.fields[coordinates.y][coordinates.x].hasSnake = true;
+        this.changes.push(this.fields[coordinates.y][coordinates.x]);
     }
     public removeSnakeFromField(coordinates: FieldCoordinates) {
         this.fields[coordinates.y][coordinates.x].hasSnake = false;
+        this.changes.push(this.fields[coordinates.y][coordinates.x]);
     }
     public checkIfNextMovePossible(coordinates: FieldCoordinates) {
         return coordinates.x >= 0 && coordinates.x < this.colNumber
             && coordinates.y >= 0 && coordinates.y < this.rowNumber
             && !this.fields[coordinates.y][coordinates.x].hasSnake;
     }
-    public replaceItem() {
-        return this.itemHandler.replaceItem();
+    public replaceItem(): void {
+        let changes = this.itemHandler.replaceItem();
+        this.changes.concat(changes);
+    }
+    public getChanges(): Field[] {
+        let lastChanges = this.changes;
+        this.changes = [];
+        return lastChanges;
     }
 }

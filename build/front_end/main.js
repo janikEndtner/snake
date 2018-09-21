@@ -208,12 +208,12 @@ var GameComponent = /** @class */ (function () {
             console.log(error1);
             alert('an error occured. See console for more information');
         });
+        this.wsService
+            .connect();
     };
     GameComponent.prototype.joinGame = function () {
         var _this = this;
-        this.wsService
-            .connect()
-            .subscribe(function (d) {
+        this.wsService.joinGame().subscribe(function (d) {
             if (d.status) {
                 _this.joined = d.status;
             }
@@ -326,10 +326,13 @@ var WebSocketService = /** @class */ (function () {
     function WebSocketService() {
     }
     WebSocketService.prototype.connect = function () {
+        this.socket = socket_io_client__WEBPACK_IMPORTED_MODULE_1__(_environments_environment__WEBPACK_IMPORTED_MODULE_3__["environment"].api);
+    };
+    WebSocketService.prototype.joinGame = function () {
         var _this = this;
+        this.send('join', null);
         return new rxjs__WEBPACK_IMPORTED_MODULE_2__["Observable"](function (observer) {
-            _this.socket = socket_io_client__WEBPACK_IMPORTED_MODULE_1__(_environments_environment__WEBPACK_IMPORTED_MODULE_3__["environment"].api);
-            _this.socket.on('connected', function (d) {
+            _this.socket.on('joined', function (d) {
                 observer.next({ status: true });
             });
             _this.socket.on('step', function (d) {

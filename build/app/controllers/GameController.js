@@ -29,19 +29,25 @@ exports.GameController = function (io) {
     io.on('connection', function (socket) {
         // QUICKFIX
         if (game) {
-            console.log('somebody has joined the room');
-            socket.emit('connected');
-            if (snakeCounter === 0) {
-                console.log('add snake 1');
-                game.addSnake1();
-                snakeCounter++;
-            }
-            else {
-                console.log('add snake 2');
-                game.addSnake2();
-            }
-            game.getSteps().subscribe(function (d) {
-                socket.emit('step', d);
+            console.log('somebody has connected');
+            socket.on('join', function () {
+                if (snakeCounter === 0) {
+                    console.log('add snake 1');
+                    game.addSnake1();
+                    snakeCounter++;
+                    socket.emit('joined');
+                }
+                else if (snakeCounter === 1) {
+                    console.log('add snake 2');
+                    game.addSnake2();
+                    socket.emit('joined');
+                }
+                else {
+                    console.log('too many players');
+                }
+                game.getSteps().subscribe(function (d) {
+                    socket.emit('step', d);
+                });
             });
             socket.on('startGame', function (data) {
                 console.log('somebody started the game');

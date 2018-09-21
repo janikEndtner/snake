@@ -4,6 +4,7 @@ var item_handler_class_1 = require("./item-handler.class");
 var Board = /** @class */ (function () {
     function Board(rowNumber, colNumber) {
         this.fields = [];
+        this.changes = [];
         this.colNumber = colNumber;
         this.rowNumber = rowNumber;
         this.createFields();
@@ -31,9 +32,11 @@ var Board = /** @class */ (function () {
     };
     Board.prototype.addSnakeToField = function (coordinates) {
         this.fields[coordinates.y][coordinates.x].hasSnake = true;
+        this.changes.push(this.fields[coordinates.y][coordinates.x]);
     };
     Board.prototype.removeSnakeFromField = function (coordinates) {
         this.fields[coordinates.y][coordinates.x].hasSnake = false;
+        this.changes.push(this.fields[coordinates.y][coordinates.x]);
     };
     Board.prototype.checkIfNextMovePossible = function (coordinates) {
         return coordinates.x >= 0 && coordinates.x < this.colNumber
@@ -41,7 +44,13 @@ var Board = /** @class */ (function () {
             && !this.fields[coordinates.y][coordinates.x].hasSnake;
     };
     Board.prototype.replaceItem = function () {
-        return this.itemHandler.replaceItem();
+        var changes = this.itemHandler.replaceItem();
+        this.changes.concat(changes);
+    };
+    Board.prototype.getChanges = function () {
+        var lastChanges = this.changes;
+        this.changes = [];
+        return lastChanges;
     };
     return Board;
 }());
